@@ -209,3 +209,4 @@ rake 'db:test:prepare'
 # Git
 git add: "--all ."
 git commit: %Q{ -m 'Finished basic template setup.' }
+run 'git push'
