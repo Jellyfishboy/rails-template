@@ -96,6 +96,7 @@ if yes?('Do you need to use file uploads?')
     gem 'carrierwave'
     gem 'fog'
     gem 'unf'
+    file_upload = true
 end
 
 if yes?('Do you need to use friendly URLs?')
@@ -105,6 +106,10 @@ end
 
 if yes?('Do you want to host your assets externally?')
     gem 'asset_sync'
+    unless file_upload = true
+      gem 'fog' 
+      gem 'unf'
+    end
     active_sync = true
 end
 
@@ -211,8 +216,10 @@ END
 end
 
 # Configure devise authentication
-generate('devise:install') if devise
-generate('devise User') if devise
+if devise
+  generate('devise:install') 
+  generate('devise User')
+end
 
 # Migrate database
 rake 'db:migrate'
