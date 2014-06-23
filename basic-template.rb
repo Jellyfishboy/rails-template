@@ -68,6 +68,7 @@ END
 # Gems
 if yes?('Do you need user authentication?')
     gem 'devise'
+    devise = true
 end
 
 if yes?('Do you need a sitemap generator?')
@@ -202,6 +203,10 @@ RSpec.configure do |config|
 end
 END
 end
+
+# Configure devise authentication
+generate('devise:install') if devise
+generate('devise User') if devise
 
 # Migrate database
 rake 'db:migrate'
