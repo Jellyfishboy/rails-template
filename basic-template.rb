@@ -68,6 +68,7 @@ END
 # Gems
 if yes?('Do you need user authentication?')
     gem 'devise'
+    gem 'bcrypt-ruby', '~> 3.0.0'
     devise = true
 end
 
