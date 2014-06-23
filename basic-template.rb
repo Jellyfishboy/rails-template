@@ -110,6 +110,11 @@ gem 'unicorn', :platforms => :ruby
 gem 'rollbar', '~> 0.12.17'
 gem 'whenever', :require => false
 gem 'pg'
+
+gem_group :production do
+  gem 'lograge'
+end
+
 gem_group :development do
     gem 'better_errors'
     gem 'binding_of_caller'
