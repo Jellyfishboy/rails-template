@@ -68,6 +68,7 @@ END
 # Gems
 if yes?('Do you need user authentication?')
     gem 'devise'
+    devise = true
 end
 
 if yes?('Do you need a sitemap generator?')
@@ -109,6 +110,7 @@ end
 gem 'unicorn', :platforms => :ruby
 gem 'rollbar', '~> 0.12.17'
 gem 'whenever', :require => false
+gem 'compass-rails'
 gem 'pg'
 
 gem_group :production do
@@ -206,6 +208,10 @@ RSpec.configure do |config|
 end
 END
 end
+
+# Configure devise authentication
+generate('devise:install') if devise
+generate('devise User') if devise
 
 # Migrate database
 rake 'db:migrate'
