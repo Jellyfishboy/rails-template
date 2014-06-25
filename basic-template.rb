@@ -149,6 +149,11 @@ gem_group :development, :test do
     gem 'pry'
     gem 'sqlite3'
 end
+
+# Performance enhancers
+gem 'fast_blank'
+
+
 run 'bundle install'
 
 # Setup gems
