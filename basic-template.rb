@@ -113,16 +113,15 @@ if yes?('Do you want to host your assets externally?')
     active_sync = true
 end
 
-if yes?('Do you want to use Unircon as your rack server')
+if yes?('Do you want to use Unircon as your rack server?')
     gem 'unicorn', :platforms => :ruby
     unicorn = true
 end
 
-if yes?('Do you want to use Capistrano for deployment')
+if yes?('Do you want to use Capistrano for deployment?')
   capistrano = true
 end
 
-gem 'rails', '4.1.0'
 gem 'pg'
 
 gem_group :production do
@@ -138,7 +137,6 @@ gem_group :development do
     gem 'rack-mini-profiler'
     gem 'capistrano', '~> 2.15' if capistrano
     gem 'bullet'
-    gem 'haml'
     gem 'capistrano-unicorn', :require => false, :platforms => :ruby if unicorn
     gem 'thin'
     gem 'colorize'
@@ -162,16 +160,11 @@ end
 # Performance enhancers
 gem 'fast_blank'
 gem 'jquery-turbolinks'
-gem 'turbolinks'
 
 # Assets
-gem 'sass-rails',   '~> 4.0.0'
-gem 'coffee-rails', '~> 4.0.0'
 gem 'compass-rails'
 gem 'haml'
 gem 'haml-rails'
-gem 'jquery-rails'
-gem 'uglifier', '>= 1.0.3'
 
 # Logging
 gem 'rollbar', '~> 0.12.17'
@@ -360,101 +353,101 @@ end
 # end
 
 # Configure Capistrano
-if capistrano
-    inside('config') do
-        file 'deploy.rb', <<-END
-        set :application, 'app_name'
-        set :user, 'root'
-        set :scm, 'git'
-        set :repository, 'git_repo_url'
-        set :scm_verbose, true
-        set :domain, '0.0.0.0'
-        set :deploy_to, '/home/app_name/'
-        set :branch, 'master'
+# if capistrano
+#     inside('config') do
+#         file 'deploy.rb', <<-END
+#         set :application, 'app_name'
+#         set :user, 'root'
+#         set :scm, 'git'
+#         set :repository, 'git_repo_url'
+#         set :scm_verbose, true
+#         set :domain, '0.0.0.0'
+#         set :deploy_to, '/home/app_name/'
+#         set :branch, 'master'
 
-        server domain, :app, :web, :db, :primary => true
+#         server domain, :app, :web, :db, :primary => true
 
-        require 'capistrano-unicorn'
+#         require 'capistrano-unicorn'
 
-        # Bundler for remote gem installs
-        require "bundler/capistrano"
+#         # Bundler for remote gem installs
+#         require "bundler/capistrano"
 
-        # Only keep the latest 3 releases
-        set :keep_releases, 3
-        after "deploy:restart", "deploy:cleanup"
+#         # Only keep the latest 3 releases
+#         set :keep_releases, 3
+#         after "deploy:restart", "deploy:cleanup"
 
-        set :normalize_asset_timestamps, false
+#         set :normalize_asset_timestamps, false
 
-        # deploy config
-        set :deploy_via, :remote_cache
-        set :copy_exclude, [".git", ".DS_Store", ".gitignore", ".gitmodules"]
-        set :use_sudo, false
+#         # deploy config
+#         set :deploy_via, :remote_cache
+#         set :copy_exclude, [".git", ".DS_Store", ".gitignore", ".gitmodules"]
+#         set :use_sudo, false
 
-        # For RBENV
-        set :default_environment, {
-          'PATH' => "$HOME/.rbenv/shims:$HOME/.rbenv/bin:$PATH"
-        }
+#         # For RBENV
+#         set :default_environment, {
+#           'PATH' => "$HOME/.rbenv/shims:$HOME/.rbenv/bin:$PATH"
+#         }
 
-        namespace :configure do
-          desc "Setup application configuration"
-          task :application, :roles => :app do
-              run "yes | cp /home/configs/settings.yml /home/#{application}/current/config"
-          end
-          desc "Setup database configuration"
-          task :database, :roles => :app do
-            run "yes | cp /home/configs/database.yml /home/#{application}/current/config"
-          end
-          desc "Update crontab configuration"
-          task :crontab, :roles => :app do
-            run "cd /home/#{application}/current && whenever --update-crontab #{application}"
-          end
-        end
-        namespace :database do
-            desc "Migrate the database"
-            task :migrate, :roles => :app do
-              run "cd /home/#{application}/current && RAILS_ENV=#{rails_env} bundle exec rake db:migrate"
-            end
-        end
-        namespace :assets do
-            desc "Install Bower dependencies"
-            task :bower, :roles => :app do
-              run "cd /home/#{application}/current && bower install --allow-root"
-            end 
-            desc "Compile assets"
-            task :compile, :roles => :app do
-                run "cd /home/#{application}/current && RAILS_ENV=#{rails_env} bundle exec rake assets:precompile"
-            end
-            desc "Generate sitemap"
-            task :refresh_sitemaps do
-              run "cd #{latest_release} && RAILS_ENV=#{rails_env} bundle exec rake sitemap:refresh"
-            end
-        end
-        namespace :rollbar do
-          desc "Notify Rollbar of deployment"
-          task :notify, :roles => :app do
-            set :revision, `git log -n 1 --pretty=format:"%H"`
-            set :local_user, `whoami`
-            set :rollbar_token, ENV['ROLLBAR_ACCESS_TOKEN']
-            rails_env = fetch(:rails_env, 'production')
-            run "curl https://api.rollbar.com/api/1/deploy/ -F access_token=#{rollbar_token} -F environment=#{rails_env} -F revision=#{revision} -F local_username=#{local_user} >/dev/null 2>&1", :once => true
-          end
-        end
+#         namespace :configure do
+#           desc "Setup application configuration"
+#           task :application, :roles => :app do
+#               run "yes | cp /home/configs/settings.yml /home/#{application}/current/config"
+#           end
+#           desc "Setup database configuration"
+#           task :database, :roles => :app do
+#             run "yes | cp /home/configs/database.yml /home/#{application}/current/config"
+#           end
+#           desc "Update crontab configuration"
+#           task :crontab, :roles => :app do
+#             run "cd /home/#{application}/current && whenever --update-crontab #{application}"
+#           end
+#         end
+#         namespace :database do
+#             desc "Migrate the database"
+#             task :migrate, :roles => :app do
+#               run "cd /home/#{application}/current && RAILS_ENV=#{rails_env} bundle exec rake db:migrate"
+#             end
+#         end
+#         namespace :assets do
+#             desc "Install Bower dependencies"
+#             task :bower, :roles => :app do
+#               run "cd /home/#{application}/current && bower install --allow-root"
+#             end 
+#             desc "Compile assets"
+#             task :compile, :roles => :app do
+#                 run "cd /home/#{application}/current && RAILS_ENV=#{rails_env} bundle exec rake assets:precompile"
+#             end
+#             desc "Generate sitemap"
+#             task :refresh_sitemaps do
+#               run "cd #{latest_release} && RAILS_ENV=#{rails_env} bundle exec rake sitemap:refresh"
+#             end
+#         end
+#         namespace :rollbar do
+#           desc "Notify Rollbar of deployment"
+#           task :notify, :roles => :app do
+#             set :revision, `git log -n 1 --pretty=format:"%H"`
+#             set :local_user, `whoami`
+#             set :rollbar_token, ENV['ROLLBAR_ACCESS_TOKEN']
+#             rails_env = fetch(:rails_env, 'production')
+#             run "curl https://api.rollbar.com/api/1/deploy/ -F access_token=#{rollbar_token} -F environment=#{rails_env} -F revision=#{revision} -F local_username=#{local_user} >/dev/null 2>&1", :once => true
+#           end
+#         end
 
-        # additional settings
-        default_run_options[:pty] = true
+#         # additional settings
+#         default_run_options[:pty] = true
 
-        after :deploy, 'configure:application'
-        after 'configure:application', 'configure:database'
-        after 'configure:database', 'configure:crontab'
-        after 'configure:crontab', 'database:migrate'
-        after 'database:migrate', 'assets:bower'
-        after 'assets:bower', 'assets:compile'
-        after 'assets:compile', 'assets:refresh_sitemaps'
-        after 'assets:refresh_sitemaps', 'rollbar:notify'
-        after 'rollbar:notify', 'unicorn:restart'
-        END
-    end
-end
+#         after :deploy, 'configure:application'
+#         after 'configure:application', 'configure:database'
+#         after 'configure:database', 'configure:crontab'
+#         after 'configure:crontab', 'database:migrate'
+#         after 'database:migrate', 'assets:bower'
+#         after 'assets:bower', 'assets:compile'
+#         after 'assets:compile', 'assets:refresh_sitemaps'
+#         after 'assets:refresh_sitemaps', 'rollbar:notify'
+#         after 'rollbar:notify', 'unicorn:restart'
+#         END
+#     end
+# end
 
 # Configure Devise authentication
 if devise
@@ -467,6 +460,6 @@ rake 'db:migrate'
 rake 'db:test:prepare'
 
 # Git
-# git add: "--all ."
-# git commit: %Q{ -m 'Finished basic template setup.' }
-# run 'git push'
+git add: "--all ."
+git commit: %Q{ -m 'Finished basic template setup.' }
+run 'git push'
