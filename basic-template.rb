@@ -12,38 +12,38 @@
 # Create settings file
 inside('config') do
     file 'settings.yml', <<-END
-    mailer:
-        development:
-            server: smtp.example.com
-            port: 587
-            domain: localhost:3000
-            user_name: user@example.com
-            password: password123
-            host: localhost:3000
-        production:
-            server: smtp.example.com
-            port: 587
-            domain: 10.1.2.56
-            user_name: user@example.com
-            password: password123
-            host: 10.1.2.56
-    aws:
-        s3:
-            id: abc123
-            key: hex123
-            bucket: example-bucket
-            region: eu-west-1
-        cloudfront:
-            host:
-                carrierwave: http://cdn.example.com
-                app: http://cdn%d.example.com
-            prefix: /assets
-    sitemap:
-        host: http://www.example.com
-    rollbar:
-        access_token: hex123
-    email:
-        root: http://www.example.com/assets
+mailer:
+    development:
+        server: smtp.example.com
+        port: 587
+        domain: localhost:3000
+        user_name: user@example.com
+        password: password123
+        host: localhost:3000
+    production:
+        server: smtp.example.com
+        port: 587
+        domain: 10.1.2.56
+        user_name: user@example.com
+        password: password123
+        host: 10.1.2.56
+aws:
+    s3:
+        id: abc123
+        key: hex123
+        bucket: example-bucket
+        region: eu-west-1
+    cloudfront:
+        host:
+            carrierwave: http://cdn.example.com
+            app: http://cdn%d.example.com
+        prefix: /assets
+sitemap:
+    host: http://www.example.com
+rollbar:
+    access_token: hex123
+email:
+    root: http://www.example.com/assets
     END
 end
 
@@ -105,7 +105,7 @@ end
 
 if yes?('Do you want to host your assets externally?')
     gem 'asset_sync'
-    unless file_upload = true
+    unless file_upload == true
       gem 'fog' 
       gem 'unf'
     end
