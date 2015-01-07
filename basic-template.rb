@@ -68,7 +68,6 @@ END
 # Gems
 if yes?('Do you need user authentication?')
     gem 'devise'
-    gem 'bcrypt-ruby', '~> 3.0.0'
     devise = true
 end
 
@@ -163,11 +162,9 @@ gem 'jquery-turbolinks'
 
 # Assets
 gem 'compass-rails'
-gem 'haml'
-gem 'haml-rails'
 
 # Logging
-gem 'rollbar', '~> 0.12.17'
+gem 'rollbar'
 
 # Scheduled jobs
 gem 'whenever', :require => false
