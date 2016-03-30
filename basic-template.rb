@@ -11,7 +11,7 @@
 
 # Create settings file
 inside('config') do
-    file 'secrets.yml', <<-END
+    file 'secrets.example.yml', <<-END
 mailer:
     development:
         server: smtp.example.com
