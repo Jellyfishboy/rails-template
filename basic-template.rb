@@ -150,6 +150,7 @@ gem_group :test do
     gem 'shoulda-matchers'
     gem 'faker'
     gem 'email_spec'
+    gem 'fuubar'
 end
 gem_group :development, :test do
     gem 'jazz_hands', github: 'nixme/jazz_hands', branch: 'bring-your-own-debugger'
