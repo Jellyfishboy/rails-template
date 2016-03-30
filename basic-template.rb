@@ -11,7 +11,7 @@
 
 # Create settings file
 inside('config') do
-    file 'settings.yml', <<-END
+    file 'secrets.yml', <<-END
 mailer:
     development:
         server: smtp.example.com
@@ -51,7 +51,7 @@ end
 file '.travis.yml', <<-END
 language: ruby
 rvm:
-    - 2.1.2
+    - 2.2.2
 script:
     - RAILS_ENV=test bundle exec rake db:setup --trace
     - bundle exec rake db:test:prepare
