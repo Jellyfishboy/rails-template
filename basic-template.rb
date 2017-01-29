@@ -12,38 +12,38 @@
 # Create settings file
 inside('config') do
     file 'secrets.example.yml', <<-END
-mailer:
-    development:
-        server: smtp.example.com
-        port: 587
-        domain: localhost:3000
-        user_name: user@example.com
-        password: password123
-        host: localhost:3000
-    production:
-        server: smtp.example.com
-        port: 587
-        domain: 10.1.2.56
-        user_name: user@example.com
-        password: password123
-        host: 10.1.2.56
-aws:
-    s3:
-        id: abc123
-        key: hex123
-        bucket: example-bucket
-        region: eu-west-1
-    cloudfront:
-        host:
-            carrierwave: http://cdn.example.com
-            app: http://cdn%d.example.com
-        prefix: /assets
-sitemap:
-    host: http://www.example.com
-rollbar:
-    access_token: hex123
-email:
-    root: http://www.example.com/assets
+developlment:
+  global_url: http://localhost:3000
+  mailer_asset_url: http://localhost:3000
+  asset_url: http://localhost:3000
+  carrierwave_url: http://cdn1.tomdallimore.com
+  redis_url: redis://localhost:6379/12
+  mailer_server: smtp.example.net
+  mailer_port: 587
+  mailer_domain: http://localhost:3000
+  mailer_user_name: username
+  mailer_password: password
+  rollbar_access_token: 12345
+  aws_s3_id: awss3id
+  aws_s3_key: awss3key
+  aws_s3_bucket: aws-bucket
+  aws_s3_region: aws-region
+test:
+  global_url: http://localhost:3000
+  mailer_asset_url: http://localhost:3000
+  asset_url: http://localhost:3000
+  carrierwave_url: http://cdn1.tomdallimore.com
+  redis_url: redis://localhost:6379/12
+  mailer_server: smtp.example.net
+  mailer_port: 587
+  mailer_domain: http://localhost:3000
+  mailer_user_name: username
+  mailer_password: password
+  rollbar_access_token: 12345
+  aws_s3_id: awss3id
+  aws_s3_key: awss3key
+  aws_s3_bucket: aws-bucket
+  aws_s3_region: aws-region  
     END
 end
 
@@ -75,18 +75,18 @@ if yes?('Do you need a sitemap generator?')
     gem 'sitemap_generator'
     inside('config') do
         file 'sitemap.rb', <<-END
-        require 'rubygems'
-        require 'sitemap_generator'
+require 'rubygems'
+require 'sitemap_generator'
 
-        # Set the host name for URL creation
-        SitemapGenerator::Sitemap.default_host = Settings.sitemap.host
-        SitemapGenerator::Sitemap.sitemaps_path = 'shared/'
+# Set the host name for URL creation
+SitemapGenerator::Sitemap.default_host = Rails.application.secrets.global_url
+SitemapGenerator::Sitemap.sitemaps_path = 'shared/'
 
-        SitemapGenerator::Sitemap.create do
+SitemapGenerator::Sitemap.create do
 
-        end
-        SitemapGenerator::Sitemap.ping_search_engines
-        END
+end
+SitemapGenerator::Sitemap.ping_search_engines
+END
     end
 end
 
@@ -95,6 +95,29 @@ if yes?('Do you need to use file uploads?')
     gem 'carrierwave'
     gem 'fog'
     gem 'unf'
+    inside('config/initializers') do
+      file 'carrierwave_config.rb', <<-END
+CarrierWave.configure do |config|
+  if Rails.env.production?
+      config.storage :fog
+      config.fog_credentials = {
+          :provider => 'AWS',
+          :aws_access_key_id => Rails.application.secrets.aws_s3_id,
+          :aws_secret_access_key => Rails.application.secrets.aws_s3_key,
+          :region => Rails.application.secrets.aws_s3_region,
+      }
+      config.fog_directory = Rails.application.secrets.aws_s3_bucket
+      config.asset_host = Rails.application.secrets.carrierwave_url
+      config.fog_public = true
+      config.fog_attributes = {
+        'Cache-Control' => 'max-age=315576000',
+        'x-amz-storage-class' => 'REDUCED_REDUNDANCY'
+      }
+  else
+      config.storage = :file
+  end
+end
+END
     file_upload = true
 end
 
@@ -113,7 +136,7 @@ if yes?('Do you want to host your assets externally?')
 end
 
 if yes?('Do you want to use Unircon as your rack server?')
-    gem 'unicorn', :platforms => :ruby
+    gem 'unicorn'
     unicorn = true
 end
 
@@ -121,6 +144,62 @@ if yes?('Do you want to use Capistrano for deployment?')
   capistrano = true
 end
 
+if yes?("Do you want Sidekiq background processing?")
+  gem 'sidekiq'
+  gem 'sidekiq-failures'
+  gem 'sinatra', :require => nil
+  inside('config') do
+    file 'sidekiq.yml', <<-END
+---
+concurrency: 5
+verbose: true
+pidfile: ./tmp/pids/sidekiq.pid
+logfile: ./log/sidekiq.log
+staging:
+  concurrency: 10
+production:
+  concurrency: 20
+  verbose: false
+# Create two queues, defaut and high priority
+# The 2 tells Sidekiq to check the associated queue twice as often
+:queues:
+  - default
+  - mailers
+  - [carts, 2]
+END
+  inside('config/initializers') do
+    file 'sidekiq.rb' do <<-END
+require 'sidekiq'
+require 'sidekiq-status'
+
+Sidekiq.configure_server do |config|
+    config.redis = { url: 'redis://localhost:6379/12' }
+    config.server_middleware do |chain|
+        chain.add Sidekiq::Status::ServerMiddleware, expiration: 24.hours # default
+    end
+    config.client_middleware do |chain|
+        chain.add Sidekiq::Status::ClientMiddleware, expiration: 24.hours # default
+    end
+end
+
+Sidekiq.configure_client do |config|
+    config.redis = { url: 'redis://localhost:6379/12' }
+    config.client_middleware do |chain|
+        chain.add Sidekiq::Status::ClientMiddleware, expiration: 24.hours # default
+    end
+end
+END
+  inside('config/initializers') do <<-END
+ActiveJob::Base.queue_adapter = :sidekiq
+END
+  inside('spec/support') do <<-END
+RSpec.configure do |config|
+  config.before(:each) do
+    Sidekiq::Worker.clear_all
+  end
+end
+END
+end
 gem 'pg'
 
 gem_group :production do
@@ -134,9 +213,8 @@ gem_group :development do
     gem 'meta_request'
     gem 'quiet_assets'
     gem 'rack-mini-profiler'
-    gem 'capistrano', '~> 2.15' if capistrano
+    gem 'capistrano' if capistrano
     gem 'bullet'
-    gem 'capistrano-unicorn', :require => false, :platforms => :ruby if unicorn
     gem 'thin'
     gem 'colorize'
 end
