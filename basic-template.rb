@@ -118,6 +118,7 @@ CarrierWave.configure do |config|
   end
 end
 END
+    end
     file_upload = true
 end
 
@@ -147,7 +148,8 @@ end
 if yes?("Do you want Sidekiq background processing?")
   gem 'sidekiq'
   gem 'sidekiq-failures'
-  gem 'sinatra', :require => nil
+  gem 'sidekiq-status'
+  gem 'sinatra', require: nil
   inside('config') do
     file 'sidekiq.yml', <<-END
 ---
@@ -167,6 +169,7 @@ production:
   - mailers
   - [carts, 2]
 END
+  end
   inside('config/initializers') do
     file 'sidekiq.rb', <<-END
 require 'sidekiq'
@@ -189,10 +192,12 @@ Sidekiq.configure_client do |config|
     end
 end
 END
+  end
   inside('config/initializers') do 
     file 'active_job.rb', <<-END
 ActiveJob::Base.queue_adapter = :sidekiq
 END
+  end
   inside('spec/support') do 
     file 'sidekiq.rb', <<-END
 RSpec.configure do |config|
@@ -201,14 +206,13 @@ RSpec.configure do |config|
   end
 end
 END
+  end
 end
 gem 'pg'
 
 gem_group :production do
-    gem 'unicorn-worker-killer' if unicorn
     gem 'lograge'
 end
-
 gem_group :development do
     gem 'better_errors'
     gem 'binding_of_caller'
