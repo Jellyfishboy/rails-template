@@ -44,7 +44,7 @@ test:
   aws_s3_key: awss3key
   aws_s3_bucket: aws-bucket
   aws_s3_region: aws-region  
-    END
+END
 end
 
 # Create CI config
@@ -168,7 +168,7 @@ production:
   - [carts, 2]
 END
   inside('config/initializers') do
-    file 'sidekiq.rb' do <<-END
+    file 'sidekiq.rb', <<-END
 require 'sidekiq'
 require 'sidekiq-status'
 
@@ -189,10 +189,12 @@ Sidekiq.configure_client do |config|
     end
 end
 END
-  inside('config/initializers') do <<-END
+  inside('config/initializers') do 
+    file 'active_job.rb', <<-END
 ActiveJob::Base.queue_adapter = :sidekiq
 END
-  inside('spec/support') do <<-END
+  inside('spec/support') do 
+    file 'sidekiq.rb', <<-END
 RSpec.configure do |config|
   config.before(:each) do
     Sidekiq::Worker.clear_all
